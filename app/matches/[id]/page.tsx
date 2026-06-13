@@ -9,7 +9,9 @@ import { calculatePredictionQuality } from "../../lib/predictionQuality";
 import { generateAnalystExplanation } from "../../lib/analystExplanation";
 import { getMarketLearningWeights } from "../../lib/learningWeights";
 import { CreateProofButton } from "../../components/CreateProofButton";
+
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type MatchPageProps = {
   params: Promise<{

@@ -3,7 +3,9 @@ import { getUpcomingWorldCupMatches } from "../lib/fixtures";
 import { generatePrediction } from "../lib/predictionEngine";
 import { calculatePredictionQuality } from "../lib/predictionQuality";
 import { getMarketLearningWeights } from "../lib/learningWeights";
+
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function PredictionsPage() {
   const matches = await getUpcomingWorldCupMatches();

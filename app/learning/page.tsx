@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getMarketLearningWeights } from "../lib/learningWeights";
 import { UpdateLearningButton } from "../components/UpdateLearningButton";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function LearningPage() {
   const weights = await getMarketLearningWeights();
   const markets = Object.values(weights).sort(

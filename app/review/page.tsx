@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ReviewButtons } from "../components/ReviewButtons";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type PredictionRow = {
   id: string;
   match_id: string;

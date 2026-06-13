@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { supabase } from "../lib/supabase";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type PredictionProof = {
   id: string;
@@ -12,19 +16,29 @@ type PredictionProof = {
 };
 
 async function getProofs() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const { data, error } = await supabase
+    .from("prediction_proofs")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  const response = await fetch(`${baseUrl}/api/proofs`, {
-    cache: "no-store",
-  });
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      proofs: [],
+    };
+  }
 
-  return response.json();
+  return {
+    success: true,
+    error: null,
+    proofs: data ?? [],
+  };
 }
 
 export default async function ProofsPage() {
   const data = await getProofs();
-  const proofs = (data.proofs ?? []) as PredictionProof[];
+  const proofs = data.proofs as PredictionProof[];
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-6 text-white md:px-10">
@@ -43,10 +57,16 @@ export default async function ProofsPage() {
           </h1>
 
           <p className="mt-4 max-w-2xl text-slate-400">
-            Off-chain prediction hashes are stored here before we move to Base
+            Off-chain prediction hashes are stored here before future Base
             Sepolia proof anchoring.
           </p>
         </div>
+
+        {!data.success && (
+          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+            {data.error}
+          </div>
+        )}
 
         <div className="mt-8 space-y-4">
           {proofs.length === 0 ? (

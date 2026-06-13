@@ -4,6 +4,9 @@ import { getUpcomingWorldCupMatches } from "./lib/fixtures";
 import { SyncFixturesButton } from "./components/SyncFixturesButton";
 import { GenerateDailyPredictionsButton } from "./components/GenerateDailyPredictionsButton";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Home() {
   const matches = await getUpcomingWorldCupMatches();
 
