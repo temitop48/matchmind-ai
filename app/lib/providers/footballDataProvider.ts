@@ -30,7 +30,16 @@ export class FootballDataProvider implements FixtureProvider {
       throw new Error("Missing FOOTBALL_DATA_API_KEY.");
     }
 
-    const response = await fetch("https://api.football-data.org/v4/matches", {
+    const today = new Date();
+const dateFrom = today.toISOString().slice(0, 10);
+
+const nextWeek = new Date(today);
+nextWeek.setDate(today.getDate() + 7);
+const dateTo = nextWeek.toISOString().slice(0, 10);
+
+const response = await fetch(
+  `https://api.football-data.org/v4/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`,
+  {
       headers: {
         "X-Auth-Token": apiKey,
       },

@@ -3,11 +3,19 @@ import { mapDatabaseMatchToWorldCupMatch } from "./matchMapper";
 import type { Match } from "../types/match";
 import type { WorldCupMatch } from "../data/worldCupMatches";
 
+function getTodayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export async function getUpcomingWorldCupMatches(): Promise<WorldCupMatch[]> {
+  const today = getTodayDate();
+
   const { data, error } = await supabase
     .from("world_cup_matches")
     .select("*")
-    .order("date", { ascending: true });
+    .gte("date", today)
+    .order("date", { ascending: true })
+    .order("time", { ascending: true });
 
   if (error) {
     console.error(error);

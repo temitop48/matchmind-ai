@@ -79,7 +79,7 @@ export default async function Home() {
                 </Link>
 
                 <Link
-                  href="#matches"
+                  href="/#matches"
                   className="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-3 text-sm font-bold text-slate-200 backdrop-blur transition hover:bg-slate-900"
                 >
                   Browse matches

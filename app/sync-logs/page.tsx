@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { supabase } from "../lib/supabase";
 
 type SyncLog = {
   id: string;
@@ -10,19 +11,30 @@ type SyncLog = {
 };
 
 async function getSyncLogs() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const { data, error } = await supabase
+    .from("fixture_sync_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(20);
 
-  const response = await fetch(`${baseUrl}/api/fixtures/logs`, {
-    cache: "no-store",
-  });
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+      logs: [],
+    };
+  }
 
-  return response.json();
+  return {
+    success: true,
+    error: null,
+    logs: data ?? [],
+  };
 }
 
 export default async function SyncLogsPage() {
   const data = await getSyncLogs();
-  const logs = (data.logs ?? []) as SyncLog[];
+  const logs = data.logs as SyncLog[];
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-6 text-white md:px-10">
@@ -44,6 +56,12 @@ export default async function SyncLogsPage() {
             Track fixture sync attempts from football-data.org.
           </p>
         </div>
+
+        {!data.success && (
+          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+            {data.error}
+          </div>
+        )}
 
         <div className="mt-8 space-y-4">
           {logs.length === 0 ? (
@@ -75,7 +93,7 @@ export default async function SyncLogsPage() {
                     )}
                   </div>
 
-                  <span className="rounded-full bg-slate-950 px-4 py-2 text-xs text-slate-300">
+                  <span className="h-fit rounded-full bg-slate-950 px-4 py-2 text-xs text-slate-300">
                     {new Date(log.created_at).toLocaleString()}
                   </span>
                 </div>
