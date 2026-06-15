@@ -42,8 +42,8 @@ export default async function Home() {
             </span>
           </nav>
 
-          <section className="grid flex-1 items-center gap-10 py-10 md:py-16 lg:grid-cols-[1.1fr_0.9fr]">
-            <div>
+          <section className="py-10 md:py-16">
+            <div className="max-w-4xl">
               <p className="mb-4 inline-flex rounded-full border border-slate-700 bg-slate-900/80 px-4 py-2 text-sm text-slate-300 backdrop-blur">
                 ⚽ FIFA World Cup 2026 Prediction System
               </p>
@@ -133,39 +133,39 @@ export default async function Home() {
               </div>
             </div>
 
-            <div
+            <section
               id="matches"
-              className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4 shadow-2xl backdrop-blur"
+              className="mt-12 rounded-3xl border border-slate-800 bg-slate-900/80 p-4 shadow-2xl backdrop-blur md:p-6"
             >
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <h3 className="font-bold">Upcoming Matches</h3>
+                  <h3 className="text-xl font-bold">Upcoming Matches</h3>
                   <p className="text-sm text-slate-400">
                     Synced from football-data.org
                   </p>
                 </div>
 
-                <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
-                  MVP Ready
+                <span className="w-fit rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                  {matches.length} synced fixtures
                 </span>
               </div>
 
-              <div className="space-y-4">
-                {matches.length === 0 ? (
-                  <div className="rounded-2xl border border-slate-800 bg-slate-950/90 p-5">
-                    <p className="font-semibold">No fixtures found yet</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-400">
-                      Run the fixture sync endpoint to import available matches
-                      from football-data.org.
-                    </p>
-                  </div>
-                ) : (
-                  matches.map((match) => (
+              {matches.length === 0 ? (
+                <div className="rounded-2xl border border-slate-800 bg-slate-950/90 p-5">
+                  <p className="font-semibold">No fixtures found yet</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-400">
+                    Run the fixture sync endpoint to import available matches
+                    from football-data.org.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {matches.map((match) => (
                     <MatchCard key={match.id} match={match} />
-                  ))
-                )}
-              </div>
-            </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
         </div>
       </section>

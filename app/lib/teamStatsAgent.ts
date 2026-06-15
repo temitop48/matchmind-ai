@@ -1,4 +1,5 @@
 import type { TeamStats } from "../types/teamStats";
+import { supabase } from "./supabase";
 
 const fallbackTeamStats: TeamStats = {
   team: "Unknown",
@@ -12,8 +13,27 @@ const fallbackTeamStats: TeamStats = {
 };
 
 export async function getTeamStats(team: string): Promise<TeamStats> {
+  const { data, error } = await supabase
+    .from("team_stats")
+    .select("*")
+    .eq("team", team)
+    .maybeSingle();
+
+  if (error || !data) {
+    return {
+      ...fallbackTeamStats,
+      team,
+    };
+  }
+
   return {
-    ...fallbackTeamStats,
-    team,
+    team: data.team,
+    matchesPlayed: data.matches_played,
+    wins: data.wins,
+    draws: data.draws,
+    losses: data.losses,
+    goalsFor: data.goals_for,
+    goalsAgainst: data.goals_against,
+    points: data.points,
   };
 }

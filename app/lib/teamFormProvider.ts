@@ -79,18 +79,6 @@ export async function getRecentTeamStatsFromFootballData(
     );
 
     if (!foundTeam) {
-      console.log(
-        `No exact national team match found for ${team}. Using fallback.`,
-      );
-
-      return {
-        ...fallbackStats,
-        team,
-      };
-    }
-    //console.log("TEAM SEARCH RESULT:", searchData);
-
-    if (!foundTeam) {
       return {
         ...fallbackStats,
         team,
@@ -117,8 +105,6 @@ export async function getRecentTeamStatsFromFootballData(
     const matchesData =
       (await matchesResponse.json()) as FootballDataMatchesResponse;
 
-    //console.log("MATCHES RESULT:", matchesData);
-
     const matches = matchesData.matches ?? [];
 
     let wins = 0;
@@ -144,11 +130,9 @@ export async function getRecentTeamStatsFromFootballData(
       else losses += 1;
     }
 
-    const matchesPlayed = matches.length || 1;
-
     return {
       team,
-      matchesPlayed,
+      matchesPlayed: matches.length,
       wins,
       draws,
       losses,
@@ -156,9 +140,7 @@ export async function getRecentTeamStatsFromFootballData(
       goalsAgainst,
       points: wins * 3 + draws,
     };
-  } catch (error) {
-    console.error("TEAM FORM ERROR:", error);
-
+  } catch {
     return {
       ...fallbackStats,
       team,
