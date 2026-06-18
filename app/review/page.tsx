@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReviewButtons } from "../components/ReviewButtons";
+import { supabase } from "../lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,48 +16,66 @@ type PredictionRow = {
   was_correct: boolean | null;
   quality_score: number | null;
   quality_label: string | null;
+  recommendation_tier: string | null;
 };
 
-type PredictionHistoryResponse = {
-  success: boolean;
-  predictions: PredictionRow[];
-  error?: string;
-};
+async function getPredictionHistory() {
+  const { data, error } = await supabase
+    .from("prediction_history")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-async function getPredictionHistory(): Promise<PredictionHistoryResponse> {
-  try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-    const response = await fetch(`${baseUrl}/api/predictions/history`, {
-      cache: "no-store",
-    });
-
-    const text = await response.text();
-
-    if (!text) {
-      return {
-        success: false,
-        predictions: [],
-        error: "Empty API response.",
-      };
-    }
-
-    return JSON.parse(text) as PredictionHistoryResponse;
-  } catch (error) {
+  if (error) {
     return {
       success: false,
       predictions: [],
-      error:
-        error instanceof Error
-          ? error.message
-          : "Unknown prediction history error.",
+      error: error.message,
     };
   }
+
+  return {
+    success: true,
+    predictions: data ?? [],
+    error: null,
+  };
 }
 
-export default async function ReviewPage() {
+type ReviewPageProps = {
+  searchParams?: Promise<{
+    tier?: string;
+  }>;
+};
+
+export default async function ReviewPage({ searchParams }: ReviewPageProps) {
+  const params = await searchParams;
+  const selectedTier = params?.tier ?? "All";
+
   const data = await getPredictionHistory();
-  const predictions = data.predictions ?? [];
+  const allPredictions = data.predictions as PredictionRow[];
+
+  const predictions =
+    selectedTier === "All"
+      ? allPredictions
+      : allPredictions.filter(
+          (prediction) => prediction.recommendation_tier === selectedTier,
+        );
+
+  const stats = {
+    total: allPredictions.length,
+    strong: allPredictions.filter(
+      (item) => item.recommendation_tier === "Strong",
+    ).length,
+    watchlist: allPredictions.filter(
+      (item) => item.recommendation_tier === "Watchlist",
+    ).length,
+    avoid: allPredictions.filter(
+      (item) => item.recommendation_tier === "Avoid" || !item.recommendation_tier,
+    ).length,
+    reviewed: allPredictions.filter((item) => item.result_status === "Reviewed")
+      .length,
+    pending: allPredictions.filter((item) => item.result_status !== "Reviewed")
+      .length,
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 px-5 py-6 text-white md:px-10">
@@ -78,6 +97,41 @@ export default async function ReviewPage() {
             Use this page to review saved prediction outcomes after matches are
             completed.
           </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {["All", "Strong", "Watchlist", "Avoid"].map((tier) => (
+              <Link
+                key={tier}
+                href={tier === "All" ? "/review" : `/review?tier=${tier}`}
+                className={`rounded-xl px-4 py-2 text-sm font-bold ${
+                  selectedTier === tier
+                    ? "bg-emerald-400 text-slate-950"
+                    : "border border-slate-700 text-slate-300 hover:bg-slate-900"
+                }`}
+              >
+                {tier}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+            {[
+              ["Total", stats.total],
+              ["Strong", stats.strong],
+              ["Watchlist", stats.watchlist],
+              ["Avoid", stats.avoid],
+              ["Reviewed", stats.reviewed],
+              ["Pending", stats.pending],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-slate-800 bg-slate-900 p-4"
+              >
+                <p className="text-xs text-slate-500">{label}</p>
+                <p className="mt-2 text-2xl font-bold">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {!data.success && (
@@ -88,7 +142,7 @@ export default async function ReviewPage() {
 
         <div className="mt-8 space-y-4">
           {predictions.length === 0 ? (
-            <p className="text-slate-400">No prediction history yet.</p>
+            <p className="text-slate-400">No prediction history found.</p>
           ) : (
             predictions.map((prediction) => (
               <article
@@ -107,6 +161,11 @@ export default async function ReviewPage() {
 
                     <p className="mt-2 text-emerald-300">
                       Pick: {prediction.pick}
+                    </p>
+
+                    <p className="mt-2 text-sm text-slate-400">
+                      Recommendation:{" "}
+                      {prediction.recommendation_tier ?? "Avoid"}
                     </p>
 
                     <p className="mt-2 text-sm text-slate-400">
@@ -133,6 +192,7 @@ export default async function ReviewPage() {
                           ? "Yes"
                           : "No"}
                     </p>
+
                     <ReviewButtons predictionId={prediction.id} />
                   </div>
                 </div>

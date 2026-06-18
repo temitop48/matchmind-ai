@@ -20,6 +20,7 @@ export async function GET() {
         pick: market.pick,
         probability: market.probability,
         confidence: market.confidence,
+        recommendation_tier: market.recommendationTier,
         reason: market.reason,
         model_version: prediction.modelVersion,
         result_status: "Pending",
@@ -28,11 +29,9 @@ export async function GET() {
         quality_label: quality.label,
       }));
 
-      const { error } = await supabase
-        .from("prediction_history")
-        .upsert(rows, {
-          onConflict: "match_id,market_name,model_version",
-        });
+      const { error } = await supabase.from("prediction_history").upsert(rows, {
+        onConflict: "match_id,market_name,model_version",
+      });
 
       if (!error) {
         savedCount += rows.length;
@@ -53,7 +52,7 @@ export async function GET() {
             ? error.message
             : "Unknown daily generation error.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

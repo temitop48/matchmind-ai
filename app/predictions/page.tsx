@@ -15,6 +15,7 @@ type PredictionRow = {
   quality_score: number | null;
   quality_label: string | null;
   created_at: string;
+  recommendation_tier: "Strong" | "Watchlist" | "Avoid" | null;
 };
 
 async function getSavedPredictions() {
@@ -52,7 +53,7 @@ export default async function PredictionsPage() {
       acc[prediction.match_id].push(prediction);
       return acc;
     },
-    {}
+    {},
   );
 
   const groupedEntries = Object.entries(grouped);
@@ -131,7 +132,7 @@ export default async function PredictionsPage() {
                         <p className="mt-1 font-bold">
                           {
                             markets.filter(
-                              (market) => market.result_status === "Reviewed"
+                              (market) => market.result_status === "Reviewed",
                             ).length
                           }
                         </p>
@@ -142,7 +143,7 @@ export default async function PredictionsPage() {
                         <p className="mt-1 font-bold">
                           {
                             markets.filter(
-                              (market) => market.result_status !== "Reviewed"
+                              (market) => market.result_status !== "Reviewed",
                             ).length
                           }
                         </p>
@@ -151,15 +152,32 @@ export default async function PredictionsPage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {markets.slice(0, 6).map((market) => (
-                      <span
-                        key={market.id}
-                        className="rounded-full bg-slate-950 px-3 py-2 text-xs text-slate-300"
-                      >
-                        {market.market_name}: {market.pick}{" "}
-                        {market.probability}%
-                      </span>
-                    ))}
+                    {markets
+                      .sort((a, b) => {
+                        const order: Record<
+                          "Strong" | "Watchlist" | "Avoid",
+                          number
+                        > = {
+                          Strong: 0,
+                          Watchlist: 1,
+                          Avoid: 2,
+                        };
+
+                        return (
+                          order[a.recommendation_tier ?? "Avoid"] -
+                          order[b.recommendation_tier ?? "Avoid"]
+                        );
+                      })
+                      .slice(0, 6)
+                      .map((market) => (
+                        <span
+                          key={market.id}
+                          className="rounded-full bg-slate-950 px-3 py-2 text-xs text-slate-300"
+                        >
+                          {market.market_name}: {market.pick}{" "}
+                          {market.probability}%
+                        </span>
+                      ))}
                   </div>
 
                   <Link

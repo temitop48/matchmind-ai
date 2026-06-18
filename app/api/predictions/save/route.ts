@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       pick: market.pick,
       probability: market.probability,
       confidence: market.confidence,
+      recommendation_tier: market.recommendationTier,
       reason: market.reason,
       model_version: prediction.modelVersion,
       result_status: "Pending",

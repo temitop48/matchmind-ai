@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/supabase";
 import { getUpcomingWorldCupMatches } from "../../../lib/fixtures";
-import { getRecentTeamStatsFromFootballData } from "../../../lib/teamFormProvider";
 
 export const dynamic = "force-dynamic";
+
+const fallbackTeamStats = {
+  matchesPlayed: 5,
+  wins: 2,
+  draws: 2,
+  losses: 1,
+  goalsFor: 7,
+  goalsAgainst: 5,
+  points: 8,
+};
 
 export async function GET() {
   try {
@@ -17,22 +26,24 @@ export async function GET() {
       ),
     );
 
-    const rows = [];
+    const rows = teams.map((team) => ({
+      team,
+      matches_played: fallbackTeamStats.matchesPlayed,
+      wins: fallbackTeamStats.wins,
+      draws: fallbackTeamStats.draws,
+      losses: fallbackTeamStats.losses,
+      goals_for: fallbackTeamStats.goalsFor,
+      goals_against: fallbackTeamStats.goalsAgainst,
+      points: fallbackTeamStats.points,
+      source: "internal-fallback",
+      synced_at: new Date().toISOString(),
+    }));
 
-    for (const team of teams) {
-      const stats = await getRecentTeamStatsFromFootballData(team);
-
-      rows.push({
-        team: stats.team,
-        matches_played: stats.matchesPlayed,
-        wins: stats.wins,
-        draws: stats.draws,
-        losses: stats.losses,
-        goals_for: stats.goalsFor,
-        goals_against: stats.goalsAgainst,
-        points: stats.points,
-        source: "football-data.org",
-        synced_at: new Date().toISOString(),
+    if (rows.length === 0) {
+      return NextResponse.json({
+        success: true,
+        teamsProcessed: 0,
+        saved: 0,
       });
     }
 
